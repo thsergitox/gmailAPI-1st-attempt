@@ -10,7 +10,7 @@ export const listMessagesFrom = async () => {
             labelIds: ['SENT'],
             q: 'to: acecom@uni.edu.pe',
             maxResults: 500,
-        });
+        })
 
         const messages = res.data.messages
 
@@ -20,8 +20,8 @@ export const listMessagesFrom = async () => {
         }
 
         const emailSet = new Set();
-        // Cambiar keywords a set
-        const keywords = [
+        // Cambiar keywords a set ✅ 
+        const keywords = new Set([
             'free',
             'winner',
             'subscribe',
@@ -30,9 +30,9 @@ export const listMessagesFrom = async () => {
             'win',
             'prize',
             '100%'
-        ]
+        ])
 
-        // SOLVE: Trabajar con sets
+        // SOLVE: Trabajar con sets✅ 
 
         for (const message of messages) {
             const msg = await gmail.users.messages.get({
@@ -43,28 +43,28 @@ export const listMessagesFrom = async () => {
             const bodyPart = msg.data.payload.body.data
 
             if (bodyPart) {
-                // SOLVE: Hacer un split a este string, trabajarlo como un set 
-                const decodedBody = Buffer.from(bodyPart, 'base64').toString('utf-8')
-                // SOLVE: En lugar de some, usar intersection entre con keywords, si devuelve algo vacío pues no es spam
-                const containsKeyword = keywords.some(keyword => decodedBody.includes(keyword))
+                const decodedBody = Buffer.from(bodyPart, 'base64').toString('utf-8').replace(/\r?\n|\r/g, ' ').split(' ')
+                const setWords = new Set(decodedBody)
 
-                if (containsKeyword) {
-                    // VER COMO EXTRAEAR EL MAIL DE UN SET, sino lo dejo
+                const containsKeyword = setWords.intersection(keywords)
+
+                if (containsKeyword.size) {
+                    // VER COMO EXTRAEAR EL MAIL DE UN SET, sino lo dejo así noma
                     const emailMatch = decodedBody.match(/- Email:\s*([^\s]+)/)
                     if (emailMatch) {
                         emailSet.add(emailMatch[1]);
                     }
                 }
             } else {
-                console.log('NO HAY NAH!')
+                console.log('Non emails were found!')
             }
         }
-        // Ver como solucionar estos problemas
+        // Ver como solucionar estos problemas ✅ 
         const emailArray = Array.from(emailSet)
-        console.log('EMAILS:', emailArray)
+        console.log('Emails:', emailArray)
         console.log(emailArray.length)
     } catch (error) {
-        console.error('ERRRORR:', error)
+        console.error('Error:', error)
         throw error
     }
 };
