@@ -77,5 +77,3 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         throw error
     }
 }
-
-addMailSpamToBlacklist()
