@@ -7,6 +7,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         const authClient = await initializeOAuthClient()
         const gmail: gmail_v1.Gmail = google.gmail({ version: 'v1', auth: authClient })
         const lastDate = await getLastDate()
+        console.log('xd',lastDate)
         const res = await gmail.users.messages.list({
             userId: 'me',
             labelIds: ['SENT'],
@@ -78,3 +79,4 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         throw error
     }
 }
+

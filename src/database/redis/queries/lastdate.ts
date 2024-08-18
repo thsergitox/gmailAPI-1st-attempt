@@ -20,11 +20,13 @@ const saveLastDate = async () => {
 const getLastDate = async () => {
   const redisClient = await redisConnection().connect()
 
-  const lastdate = await redisClient.LINDEX('refresh_token', 0)
+  const lastdate = await redisClient.LINDEX('lastdate', 0)
 
   if (!lastdate){
-    saveLastDate()
-  }
+    const randomDay = '2010/01/01'
+    return randomDay 
+}
+   
   
   return lastdate
 }
