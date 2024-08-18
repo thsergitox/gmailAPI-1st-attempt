@@ -1,16 +1,16 @@
 import initializeOAuthClient from '~/api/gmail/connection'
 import { google, gmail_v1 } from 'googleapis'
-import { addMailsToBlackList } from '~/database'
+import { addMailsToBlackList, getLastDate, saveLastDate } from '~/database'
 
 export const addMailSpamToBlacklist = async (): Promise<void> => {
     try {
         const authClient = await initializeOAuthClient()
         const gmail: gmail_v1.Gmail = google.gmail({ version: 'v1', auth: authClient })
-
+        const lastDate = await getLastDate()
         const res = await gmail.users.messages.list({
             userId: 'me',
             labelIds: ['SENT'],
-            q: 'to: acecom@uni.edu.pe',
+            q: `to: acecom@uni.edu.pe after:${lastDate}`,
             maxResults: 500,
         })
 
@@ -69,6 +69,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         const emailArray = Array.from(emailSet)
 
         addMailsToBlackList(emailArray)
+        saveLastDate()
 
         console.log('Emails:', emailArray)
         console.log(emailArray.length)
