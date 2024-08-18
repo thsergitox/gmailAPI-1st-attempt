@@ -21,6 +21,10 @@ const getLastDate = async () => {
   const redisClient = await redisConnection().connect()
 
   const lastdate = await redisClient.LINDEX('refresh_token', 0)
+
+  if (!lastdate){
+    saveLastDate()
+  }
   
   return lastdate
 }
