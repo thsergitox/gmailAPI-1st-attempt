@@ -1,6 +1,7 @@
+import { gmail_v1, google } from 'googleapis'
 import initializeOAuthClient from '~/api/gmail/connection'
-import { google, gmail_v1 } from 'googleapis'
-import { addMailsToBlackList, getLastDate, saveLastDate } from '~/database'
+import { verifySpamWithAI } from '~/api/groq'
+import { addMailsToBlackList, getLastDate } from '~/database'
 
 export const addMailSpamToBlacklist = async (): Promise<void> => {
     try {
@@ -12,7 +13,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
             userId: 'me',
             labelIds: ['SENT'],
             q: `to: acecom@uni.edu.pe after:${lastDate}`,
-            maxResults: 500,
+            maxResults: 10,
         })
 
         const messages = res.data.messages;
@@ -33,7 +34,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
             'prize',
             '100%'
         ])
-
+        const emails: Array<{ id: string, body: string }> = []
         for (const message of messages) {
             const msg = await gmail.users.messages.get({
                 userId: 'me',
@@ -42,12 +43,15 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
 
             const bodyPart = msg.data.payload?.body?.data
 
+            
             if (bodyPart) {
                 const decodedBody = Buffer.from(bodyPart, 'base64')
                     .toString('utf-8')
                     .replace(/\r?\n|\r/g, ' ')
                     .split(' ');
                 const setWords = new Set<string>(decodedBody)
+
+                emails.push({ id: msg.data.id!, body: decodedBody.join(' ') || '' })
 
                 // Función de intersección para Sets
                 const intersection = (set1: Set<string>, set2: Set<string>): Set<string> => {
@@ -68,11 +72,22 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         }
 
         const emailArray = Array.from(emailSet)
-
+        
+        const spamEmails = await verifySpamWithAI(emails)
         addMailsToBlackList(emailArray)
-        saveLastDate()
+        //saveLastDate()
 
-        console.log('Emails:', emailArray)
+        spamEmails.forEach((email) => {
+            console.log(email.id, email.spam)
+            if (email.spam) {
+                gmail.users.messages.trash({
+                    userId: 'me',
+                    id: email.id,
+                })
+                console.log('Email moved to trash')
+            }
+        })
+
         console.log(emailArray.length)
     } catch (error) {
         console.error('Error:', error)

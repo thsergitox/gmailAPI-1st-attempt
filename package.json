@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "start" : "npx tsx src/index.ts",
+    "start": "npx tsx src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "mine",
@@ -15,6 +15,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "googleapis": "^105.0.0",
+    "groq-sdk": "^0.7.0",
     "node-cron": "^3.0.3",
     "redis": "^4.7.0"
   },
