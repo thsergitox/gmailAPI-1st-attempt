@@ -1,4 +1,4 @@
-# Cron Job 
+# Cron Job for Spam Checking
 ---
 This project is a cron job that verifies email spam for ACECOM, a peruvian college asocciation.
 
