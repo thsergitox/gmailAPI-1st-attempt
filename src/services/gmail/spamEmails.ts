@@ -24,6 +24,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
         }
 
         const emailSet = new Set<string>()
+        // Palabras clave para detectar spam
         const keywords = new Set<string>([
             'free',
             'winner',
@@ -53,7 +54,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
 
                 emails.push({ id: msg.data.id!, body: decodedBody.join(' ') || '' })
 
-                // Función de intersección para Sets
+                // Función de intersección para Sets, para saber si un correo contiene alguna de las palabras clave del diccionario
                 const intersection = (set1: Set<string>, set2: Set<string>): Set<string> => {
                     return new Set([...set1].filter(item => set2.has(item)))
                 }
@@ -71,12 +72,17 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
             }
         }
 
-        const emailArray = Array.from(emailSet)
+        // En estas dos líneas se añaden los correos spam a la blacklist que fueron clasificados como spam solo con el diccionario de palabras 
+        const emailSpamsArray = Array.from(emailSet)
+        addMailsToBlackList(emailSpamsArray)
         
+        // En el código que está abajo se clasifican los correos spam con un modelo de lenguaje natural GROQ, pero estoy tomando en consideración a todos los correos
         const spamEmails = await verifySpamWithAI(emails)
-        addMailsToBlackList(emailArray)
+        
+        // Estos está comentado para que no se actualice la fecha de la última verificación de correos spam, así se puede probar el código sin que se actualice la fecha en la bd
         //saveLastDate()
 
+        // Acá si deseas puedes colocar el método que añade los correos a la blacklist
         spamEmails.forEach((email) => {
             console.log(email.id, email.spam)
             if (email.spam) {
@@ -88,7 +94,7 @@ export const addMailSpamToBlacklist = async (): Promise<void> => {
             }
         })
 
-        console.log(emailArray.length)
+        console.log(emailSpamsArray.length)
     } catch (error) {
         console.error('Error:', error)
         throw error
