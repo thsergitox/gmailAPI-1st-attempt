@@ -83,3 +83,35 @@ In the worst case
 
 Remember to monitor Groq API limits and adjust email processing accordingly.
 
+## Code review
+
+The current code implements a bad handling of promises in [/groq/connection.ts](src/api/groq/connection.ts), specifically with [`verifySpamWithAI`](src/api/groq/connection.ts) function:
+
+1. **Shared State Issue**: The code modifies the shared `models` array while processing emails in parallel, which can lead to race conditions when multiple requests fail simultaneously.
+
+2. **Inefficient Error Handling**: The current implementation removes failed models from the array, but since promises run concurrently, this could result in different emails trying different models in an unpredictable order.
+
+3. **Rate Limiting**: The code doesn't properly handle rate limiting scenarios. When tokens per minute are exhausted, switching models isn't an effective solution since:
+   - It doesn't implement proper backoff strategies
+   - It doesn't track token usage
+   - It doesn't queue requests when limits are hit
+
+### Recommended improvements:
+
+1. Implement proper rate limiting handling:
+   - Add request queuing
+   - Implement exponential backoff
+   - Track token usage per minute
+
+2. Handle model fallback properly:
+   - Keep model selection logic separate from request processing
+   - Implement proper retry mechanisms
+   - Consider implementing a circuit breaker pattern
+
+3. Consider batching requests to optimize token usage and handle rate limits more effectively.
+
+
+
+> [!NOTE]
+> You can do it Vite!
+
